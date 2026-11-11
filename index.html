@@ -117,12 +117,15 @@
       position: relative; width: 100%; height: 160px; overflow: hidden;
       background: linear-gradient(135deg, var(--bg2), var(--card2));
     }
-    .project-thumb img {
+    .project-thumb img,
+    .project-thumb video {
       position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: cover; opacity: 0;
       transition: opacity 0.6s ease;
     }
-    .project-thumb img.active { opacity: 1; }
+    .project-thumb img.active,
+    .project-thumb video.active { opacity: 1; }
+    .project-thumb video { background: #000; }
     .project-thumb .slide-dots {
       position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 5px; z-index: 2;
@@ -483,6 +486,33 @@
       </div>
     </div>
 
+    <!-- ROS2 SIMULATION -->
+    <div class="project-card fade-in" onclick="openModal('ros2sim')">
+      <div class="project-thumb" id="thumb-ros2sim">
+        <div class="thumb-emoji">🤖</div>
+        <video class="thumb-video active" src="https://raw.githubusercontent.com/ManelHasni/ManelHasni.github.io/main/assets/Mapping%20+%20Localisation.mp4"
+               muted loop playsinline preload="none"
+               onerror="this.style.display='none'"></video>
+        <video class="thumb-video" src="https://raw.githubusercontent.com/ManelHasni/ManelHasni.github.io/main/assets/Online%20Navigation%20%26%20Exploration.mp4"
+               muted loop playsinline preload="none"
+               onerror="this.style.display='none'"></video>
+        <video class="thumb-video" src="https://raw.githubusercontent.com/ManelHasni/ManelHasni.github.io/main/assets/Target_Reaching.mp4"
+               muted loop playsinline preload="none"
+               onerror="this.style.display='none'"></video>
+        <video class="thumb-video" src="https://raw.githubusercontent.com/ManelHasni/ManelHasni.github.io/main/assets/WayPoint_Navigation.mp4"
+               muted loop playsinline preload="none"
+               onerror="this.style.display='none'"></video>
+        <button class="slide-nav prev" onclick="slideThumb(event,'ros2sim',-1)">‹</button>
+        <button class="slide-nav next" onclick="slideThumb(event,'ros2sim',1)">›</button>
+        <div class="slide-dots" id="dots-ros2sim"></div>
+      </div>
+      <div class="project-body">
+        <h3><span data-lang="fr">Simulation Robot Autonome</span><span data-lang="en">Autonomous Robot Simulation</span> — ROS 2 Jazzy</h3>
+        <p><span data-lang="fr">SLAM, navigation autonome Nav2, localisation AMCL et vision OpenCV dans Gazebo Harmonic.</span><span data-lang="en">SLAM mapping, Nav2 autonomous navigation, AMCL localization and OpenCV vision in Gazebo Harmonic.</span></p>
+        <div class="tags"><span class="tag">ROS2</span><span class="tag">SLAM</span><span class="tag">Nav2</span><span class="tag">Gazebo</span><span class="tag">OpenCV</span></div>
+      </div>
+    </div>
+
     <!-- LABVIEW -->
     <div class="project-card fade-in" onclick="openModal('labview')">
       <div class="project-thumb" id="thumb-labview">
@@ -619,6 +649,19 @@ const modals = {
     tags: ['NLP','Python','Deep Learning','Chatbot','Entity Extraction'],
     links: []
   },
+  ros2sim: {
+    title: 'Autonomous Robot Simulation — ROS 2 Jazzy',
+    images: [],
+    videos: [
+      { src: 'https://raw.githubusercontent.com/ManelHasni/ManelHasni.github.io/main/assets/Mapping%20+%20Localisation.mp4', label: 'Mapping + Localisation' },
+      { src: 'https://raw.githubusercontent.com/ManelHasni/ManelHasni.github.io/main/assets/Online%20Navigation%20%26%20Exploration.mp4', label: 'Online Navigation & Exploration' },
+      { src: 'https://raw.githubusercontent.com/ManelHasni/ManelHasni.github.io/main/assets/Target_Reaching.mp4', label: 'Target Reaching' },
+      { src: 'https://raw.githubusercontent.com/ManelHasni/ManelHasni.github.io/main/assets/WayPoint_Navigation.mp4', label: 'WayPoint Navigation' }
+    ],
+    desc: `A full-stack autonomous robot simulation built with ROS 2 Jazzy on Ubuntu 24.04, featuring SLAM-based mapping, AMCL localization, autonomous navigation, and real-time computer vision in a Gazebo Harmonic simulated environment.\n\n• SLAM Mapping — Autonomous exploration and real-time 2D map generation\n• AMCL Localization — Probabilistic self-localization on a pre-built map\n• Autonomous Navigation — Goal-based path planning and obstacle avoidance via Nav2\n• Computer Vision — Object/environment detection using OpenCV\n• Dynamic Environment — Validated in simulation with moving obstacles`,
+    tags: ['ROS2 Jazzy','SLAM Toolbox','Nav2','AMCL','Gazebo Harmonic','OpenCV','Python','C++','Ubuntu 24.04'],
+    links: []
+  },
   labview: {
     title: 'Détection Température & Humidité — LabVIEW & Cloud',
     images: [
@@ -637,8 +680,6 @@ function initThumbs() {
   ['agv','drone','chatbot','labview'].forEach(id => {
     const el = document.getElementById('thumb-' + id);
     if (!el) return;
-    const imgs = Array.from(el.querySelectorAll('img')).filter(i => i.style.display !== 'none');
-    // wait a tick so onerror can fire
     setTimeout(() => {
       const visible = Array.from(el.querySelectorAll('img')).filter(i => i.style.display !== 'none');
       thumbState[id] = { imgs: visible, cur: 0 };
@@ -649,6 +690,44 @@ function initThumbs() {
       }
     }, 400);
   });
+
+  // Video slideshow for ros2sim
+  (function() {
+    const id = 'ros2sim';
+    const el = document.getElementById('thumb-' + id);
+    if (!el) return;
+    const videos = Array.from(el.querySelectorAll('video'));
+    thumbState[id] = { imgs: videos, cur: 0, isVideo: true };
+    // Build dots
+    const dotsEl = document.getElementById('dots-' + id);
+    if (dotsEl && videos.length > 1) {
+      dotsEl.innerHTML = videos.map((_,i) =>
+        `<span class="${i===0?'active':''}" onclick="goThumb(event,'${id}',${i})"></span>`
+      ).join('');
+    }
+    if (videos.length > 0) {
+      el.querySelector('.thumb-emoji').style.display = 'none';
+      // Play first video when card hovers
+      const card = el.closest('.project-card');
+      card.addEventListener('mouseenter', () => {
+        const cur = videos[thumbState[id].cur];
+        cur.play().catch(()=>{});
+      });
+      card.addEventListener('mouseleave', () => {
+        videos.forEach(v => { v.pause(); v.currentTime = 0; });
+      });
+      // Auto-rotate every 5s
+      setInterval(() => {
+        const st = thumbState[id];
+        videos[st.cur].classList.remove('active');
+        videos[st.cur].pause(); videos[st.cur].currentTime = 0;
+        st.cur = (st.cur + 1) % videos.length;
+        videos[st.cur].classList.add('active');
+        const dots = document.getElementById('dots-' + id);
+        if (dots) dots.querySelectorAll('span').forEach((s,i) => s.classList.toggle('active', i === st.cur));
+      }, 5000);
+    }
+  })();
 }
 
 function buildDots(id) {
@@ -673,8 +752,18 @@ function slideThumb(e, id, dir) {
   e.stopPropagation();
   const st = thumbState[id];
   if (!st || st.imgs.length < 2) return;
-  st.cur = (st.cur + dir + st.imgs.length) % st.imgs.length;
-  updateThumb(id);
+  if (st.isVideo) {
+    st.imgs[st.cur].classList.remove('active');
+    st.imgs[st.cur].pause(); st.imgs[st.cur].currentTime = 0;
+    st.cur = (st.cur + dir + st.imgs.length) % st.imgs.length;
+    st.imgs[st.cur].classList.add('active');
+    st.imgs[st.cur].play().catch(()=>{});
+    const dots = document.getElementById('dots-' + id);
+    if (dots) dots.querySelectorAll('span').forEach((s,i) => s.classList.toggle('active', i === st.cur));
+  } else {
+    st.cur = (st.cur + dir + st.imgs.length) % st.imgs.length;
+    updateThumb(id);
+  }
 }
 
 function goThumb(e, id, idx) {
@@ -700,14 +789,28 @@ let lbImages = [], lbCur = 0;
 function openModal(id) {
   const d = modals[id];
   document.getElementById('modal-title').textContent = d.title;
-  document.getElementById('modal-desc').textContent = d.desc;
+  document.getElementById('modal-desc').innerHTML = d.desc.replace(/\n/g,'<br>');
   document.getElementById('modal-tags').innerHTML = d.tags.map(t => `<span class="tag">${t}</span>`).join('');
   document.getElementById('modal-links').innerHTML = d.links.map(l => `<a href="${l.url}" class="modal-link" target="_blank">${l.label}</a>`).join('');
 
   lbImages = d.images || [];
   const gallery = document.getElementById('modal-gallery');
-  if (lbImages.length > 0) {
+
+  if (d.videos && d.videos.length > 0) {
+    // Render video gallery
     gallery.style.display = 'grid';
+    gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(260px, 1fr))';
+    gallery.innerHTML = d.videos.map((v, i) =>
+      `<div style="display:flex;flex-direction:column;gap:0.4rem;">
+        <video src="${v.src}" controls muted playsinline preload="metadata"
+          style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;border:1px solid var(--border);background:#000;"
+          onerror="this.parentElement.style.display='none'"></video>
+        <span style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;">${v.label}</span>
+       </div>`
+    ).join('');
+  } else if (lbImages.length > 0) {
+    gallery.style.display = 'grid';
+    gallery.style.gridTemplateColumns = '';
     gallery.innerHTML = lbImages.map((src, i) =>
       `<img src="${src}" alt="img ${i+1}" onclick="openLightbox(${i})" loading="lazy"
             onerror="this.parentElement.removeChild(this)">`
